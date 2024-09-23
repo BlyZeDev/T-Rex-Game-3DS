@@ -1,0 +1,7 @@
+testscript.bat
+**/.vscode/
+*.3dsx
+*.cia
+*.elf
+*.lst
+*.smdh

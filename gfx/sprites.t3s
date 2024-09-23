@@ -1,0 +1,21 @@
+--atlas -f rgba8888 -z auto
+ground.png
+sun.png
+cloud.png
+game_over.png
+trex_running_1.png
+trex_running_2.png
+trex_ducking_1.png
+trex_ducking_2.png
+trex_hit_1.png
+trex_hit_2.png
+enemy_cactus_1.png
+enemy_cactus_2.png
+enemy_cactus_3.png
+enemy_cactus_4.png
+enemy_cactus_big_1.png
+enemy_cactus_big_2.png
+enemy_cactus_big_3.png
+enemy_cactus_large.png
+enemy_bird_1.png
+enemy_bird_2.png
