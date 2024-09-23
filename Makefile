@@ -32,7 +32,7 @@ include $(DEVKITARM)/3ds_rules
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
 APP_TITLE           :=	T-Rex Game 3DS
-APP_DESCRIPTION     :=	Play the Google Chrome Offline Game on 3DS
+APP_DESCRIPTION     :=	Play the Google Chrome T-Rex Game on 3DS
 APP_AUTHOR          :=	BlyZe
 
 TARGET		:=	$(notdir $(CURDIR))
