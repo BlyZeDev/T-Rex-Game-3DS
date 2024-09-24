@@ -1,5 +1,5 @@
-main.o: \
- C:/Users/leons/OneDrive/Desktop/!Programmierung/Homebrew/TRexGame/source/main.c \
+game.o: \
+ C:/Users/leons/OneDrive/Desktop/!Programmierung/Homebrew/TRexGame/source/game.c \
  C:/devkitPro/libctru/include/3ds.h \
  C:/devkitPro/libctru/include/3ds/types.h \
  C:/devkitPro/libctru/include/3ds/result.h \
@@ -108,8 +108,7 @@ main.o: \
  C:/devkitPro/libctru/include/c2d/spritesheet.h \
  C:/devkitPro/libctru/include/c2d/sprite.h \
  C:/devkitPro/libctru/include/c2d/text.h \
- C:/devkitPro/libctru/include/c2d/font.h \
- C:/Users/leons/OneDrive/Desktop/!Programmierung/Homebrew/TRexGame/source/game.h
+ C:/devkitPro/libctru/include/c2d/font.h
 C:/devkitPro/libctru/include/3ds.h:
 C:/devkitPro/libctru/include/3ds/types.h:
 C:/devkitPro/libctru/include/3ds/result.h:
@@ -219,4 +218,3 @@ C:/devkitPro/libctru/include/c2d/spritesheet.h:
 C:/devkitPro/libctru/include/c2d/sprite.h:
 C:/devkitPro/libctru/include/c2d/text.h:
 C:/devkitPro/libctru/include/c2d/font.h:
-C:/Users/leons/OneDrive/Desktop/!Programmierung/Homebrew/TRexGame/source/game.h:
