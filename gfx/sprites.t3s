@@ -1,4 +1,4 @@
---atlas -f rgba8888 -z none
+--atlas -f rgba8888 -z none --border transparent
 ground.png
 sun.png
 cloud.png
