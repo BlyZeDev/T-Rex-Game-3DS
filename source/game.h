@@ -1,6 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
+#define JUMP_FORCE -10.0f
+#define GRAVITY 0.5f
+
 typedef struct
 {
     u16 width;
@@ -20,8 +23,8 @@ typedef struct
 typedef enum
 {
     STATE_RUNNING,
-    STATE_DUCKING,
     STATE_JUMPING,
+    STATE_DUCKING,
     STATE_DEAD
 } playerState;
 
@@ -29,7 +32,6 @@ typedef struct
 {
     playerState state;
     sprite* sprites;
-    size_t curIndex;
     size_t spriteCount;
 
     float jumpVelocity;

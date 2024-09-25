@@ -1,10 +1,11 @@
---atlas -f rgba8888 -z auto
+--atlas -f rgba8888 -z none
 ground.png
 sun.png
 cloud.png
 game_over.png
 trex_running_1.png
 trex_running_2.png
+trex_jumping.png
 trex_ducking_1.png
 trex_ducking_2.png
 trex_hit_1.png

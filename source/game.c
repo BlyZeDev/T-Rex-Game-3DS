@@ -6,9 +6,6 @@
 #include <citro2d.h>
 #include <citro3d.h>
 
-#define JUMP_FORCE -8.0f
-#define GRAVITY 0.5f
-
 typedef struct
 {
     u16 width;
@@ -28,8 +25,8 @@ typedef struct
 typedef enum
 {
     STATE_RUNNING,
-    STATE_DUCKING,
     STATE_JUMPING,
+    STATE_DUCKING,
     STATE_DEAD
 } playerState;
 
@@ -37,7 +34,6 @@ typedef struct
 {
     playerState state;
     sprite* sprites;
-    size_t curIndex;
     size_t spriteCount;
 
     float jumpVelocity;
@@ -68,12 +64,11 @@ sprite initSprite(C2D_Sprite* sprites, size_t numFrames, u8 fps)
 
 player initPlayer(C2D_SpriteSheet spriteSheet)
 {
-    const size_t spriteCount = 3;
+    const size_t spriteCount = 4;
 
     player player;
     C2D_Sprite* curSprite = (C2D_Sprite*)malloc(2 * sizeof(C2D_Sprite));
     
-    player.curIndex = 0;
     player.state = STATE_RUNNING;
 
     player.sprites = (sprite*)malloc(spriteCount * sizeof(sprite));
@@ -84,17 +79,20 @@ player initPlayer(C2D_SpriteSheet spriteSheet)
     }
     player.sprites[0] = initSprite(curSprite, 2, 20);
 
-    for (int i = 0; i < 2; i++)
-    {
-        C2D_SpriteFromSheet(&curSprite[i], spriteSheet, i + 6); //T-Rex Ducking
-    }
-    player.sprites[1] = initSprite(curSprite, 2, 30);
+    C2D_SpriteFromSheet(&curSprite[0], spriteSheet, 6);
+    player.sprites[1] = initSprite(&curSprite[0], 1, 0);
 
     for (int i = 0; i < 2; i++)
     {
-        C2D_SpriteFromSheet(&curSprite[i], spriteSheet, i + 8); //T-Rex Dead
+        C2D_SpriteFromSheet(&curSprite[i], spriteSheet, i + 7); //T-Rex Ducking
     }
-    player.sprites[2] = initSprite(curSprite, 2, 60);
+    player.sprites[2] = initSprite(curSprite, 2, 30);
+
+    for (int i = 0; i < 2; i++)
+    {
+        C2D_SpriteFromSheet(&curSprite[i], spriteSheet, i + 9); //T-Rex Dead
+    }
+    player.sprites[3] = initSprite(curSprite, 2, 60);
 
     player.spriteCount = spriteCount;
     player.jumpVelocity = 0.0f;
@@ -139,28 +137,28 @@ sprite* initCacti(C2D_SpriteSheet spriteSheet)
     C2D_Sprite curSprite;
     sprite* sprites = (sprite*)malloc(8 * sizeof(sprite));
 
-    C2D_SpriteFromSheet(&curSprite, spriteSheet, 10); //Cactus1
+    C2D_SpriteFromSheet(&curSprite, spriteSheet, 11); //Cactus1
     sprites[0] = initSprite(&curSprite, 1, 0);
 
-    C2D_SpriteFromSheet(&curSprite, spriteSheet, 11); //Cactus2
+    C2D_SpriteFromSheet(&curSprite, spriteSheet, 12); //Cactus2
     sprites[1] = initSprite(&curSprite, 1, 0);
 
-    C2D_SpriteFromSheet(&curSprite, spriteSheet, 12); //Cactus3
+    C2D_SpriteFromSheet(&curSprite, spriteSheet, 13); //Cactus3
     sprites[2] = initSprite(&curSprite, 1, 0);
 
-    C2D_SpriteFromSheet(&curSprite, spriteSheet, 13); //Cactus4
+    C2D_SpriteFromSheet(&curSprite, spriteSheet, 14); //Cactus4
     sprites[3] = initSprite(&curSprite, 1, 0);
 
-    C2D_SpriteFromSheet(&curSprite, spriteSheet, 14); //Cactus Big 1
+    C2D_SpriteFromSheet(&curSprite, spriteSheet, 15); //Cactus Big 1
     sprites[4] = initSprite(&curSprite, 1, 0);
 
-    C2D_SpriteFromSheet(&curSprite, spriteSheet, 15); //Cactus Big 2
+    C2D_SpriteFromSheet(&curSprite, spriteSheet, 16); //Cactus Big 2
     sprites[5] = initSprite(&curSprite, 1, 0);
 
-    C2D_SpriteFromSheet(&curSprite, spriteSheet, 16); //Cactus Big 3
+    C2D_SpriteFromSheet(&curSprite, spriteSheet, 17); //Cactus Big 3
     sprites[6] = initSprite(&curSprite, 1, 0);
 
-    C2D_SpriteFromSheet(&curSprite, spriteSheet, 17); //Cactus Large
+    C2D_SpriteFromSheet(&curSprite, spriteSheet, 18); //Cactus Large
     sprites[7] = initSprite(&curSprite, 1, 0);
 
     return sprites;
@@ -172,7 +170,7 @@ sprite initBird(C2D_SpriteSheet spriteSheet)
 
     for (int i = 0; i < 2; i++)
     {
-        C2D_SpriteFromSheet(&curSprite[i], spriteSheet, i + 18);
+        C2D_SpriteFromSheet(&curSprite[i], spriteSheet, i + 19);
     }
     return initSprite(curSprite, 2, 30);
 }
