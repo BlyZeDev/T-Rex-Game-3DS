@@ -1,5 +1,7 @@
 testscript.bat
 **/.vscode/
+**/romfs
+**/build/
 *.3dsx
 *.cia
 *.elf
