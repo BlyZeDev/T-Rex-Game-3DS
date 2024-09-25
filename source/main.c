@@ -12,9 +12,12 @@
 #define BOTTOM_SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
+#define X_SPEED_MAX -10.0f
 #define PLAYER_X 15.0f
 
-static float groundLvl = 0.0f;
+static float rGroundLvl = 0.0f;
+static float dGroundLvl = 0.0f;
+static float xSpeed = 0.0f;
 static u32 kDown = 0;
 static u32 kHeld = 0;
 static u32 kUp = 0;
@@ -51,8 +54,8 @@ void updateGround(sprite* groundPtr, sprite* groundExtPtr)
         setSpritePos(groundExtPtr, groundPtr->frames[groundExtPtr->curIndex].params.pos.x + groundPtr->hitbox.width, groundPtr->frames[0].params.pos.y);
     }
 
-    moveSprite(groundPtr, -5, 0);
-    moveSprite(groundExtPtr, -5, 0);
+    moveSprite(groundPtr, xSpeed, 0);
+    moveSprite(groundExtPtr, xSpeed, 0);
 }
 
 void updatePlayer(player* playerPtr)
@@ -65,15 +68,20 @@ void updatePlayer(player* playerPtr)
                 playerPtr->state = STATE_JUMPING;
                 playerPtr->jumpVelocity = JUMP_FORCE;
             }
+            else if (kDown & KEY_B)
+            {
+                playerPtr->state = STATE_DUCKING;
+                setPlayerPos(playerPtr, PLAYER_X, dGroundLvl);
+            }
             break;
 
         case STATE_JUMPING:
             movePlayer(playerPtr, 0, playerPtr->jumpVelocity);
             playerPtr->jumpVelocity += GRAVITY;
 
-            if (playerPtr->sprites[playerPtr->state].frames[playerPtr->sprites[playerPtr->state].curIndex].params.pos.y >= groundLvl)
+            if (playerPtr->sprites[playerPtr->state].frames[playerPtr->sprites[playerPtr->state].curIndex].params.pos.y >= rGroundLvl)
             {
-                setPlayerPos(playerPtr, PLAYER_X, groundLvl);
+                setPlayerPos(playerPtr, PLAYER_X, rGroundLvl);
                 playerPtr->jumpVelocity = 0.0f;
                 playerPtr->state = STATE_RUNNING;
             }
@@ -83,6 +91,13 @@ void updatePlayer(player* playerPtr)
             if (kUp & KEY_B)
             {
                 playerPtr->state = STATE_RUNNING;
+                setPlayerPos(playerPtr, PLAYER_X, rGroundLvl);
+
+                if (kDown & KEY_A)
+                {
+                    playerPtr->state = STATE_JUMPING;
+                    playerPtr->jumpVelocity = JUMP_FORCE;
+                }
             }
             break;
     }
@@ -99,19 +114,23 @@ int main(int argc, char **argv)
 
     sprite ground = initGround(spriteSheet);
     sprite groundExt = initGround(spriteSheet);
-    
     setSpritePos(&ground, 0, SCREEN_HEIGHT - ground.hitbox.height);
     setSpritePos(&groundExt, ground.hitbox.width, SCREEN_HEIGHT - groundExt.hitbox.height);
 
+    xSpeed = -5;
+
+    sprite sun = initSun(spriteSheet);
+    setSpritePos(&sun, TOP_SCREEN_WIDTH - sun.hitbox.width * 2, sun.hitbox.height / 2);
+
     //sprite clound = initCloud(spriteSheet);
-    //sprite sun = initSun(spriteSheet);
     //sprite gameOver = initGameOver(spriteSheet);
 
     player player = initPlayer(spriteSheet);
 
-    groundLvl = SCREEN_HEIGHT - player.sprites[player.state].hitbox.height - ground.hitbox.height / 2;
+    rGroundLvl = SCREEN_HEIGHT - player.sprites[STATE_RUNNING].hitbox.height - ground.hitbox.height / 2;
+    dGroundLvl = SCREEN_HEIGHT - player.sprites[STATE_DUCKING].hitbox.height - ground.hitbox.height / 2;
 
-    setPlayerPos(&player, PLAYER_X, groundLvl);
+    setPlayerPos(&player, PLAYER_X, rGroundLvl);
 
     //sprite* cacti = initCacti(spriteSheet);
     //sprite bird = initBird(spriteSheet);
@@ -132,6 +151,11 @@ int main(int argc, char **argv)
         
         frames++;
 
+        if (frames % 600 == 0)
+        {
+            if (xSpeed > X_SPEED_MAX) xSpeed -= 0.5f;
+        }
+
         updateGround(&ground, &groundExt);
         updatePlayer(&player);
 
@@ -140,6 +164,8 @@ int main(int argc, char **argv)
 
         renderSprite(&ground, frames);
         renderSprite(&groundExt, frames);
+
+        renderSprite(&sun, frames);
 
         renderSprite(&player.sprites[player.state], frames);
         
