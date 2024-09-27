@@ -41,13 +41,11 @@ player initPlayer(C2D_SpriteSheet spriteSheet);
 
 sprite initGround(C2D_SpriteSheet spriteSheet);
 
-sprite initSun(C2D_SpriteSheet spriteSheet);
-
 sprite initCloud(C2D_SpriteSheet spriteSheet);
 
 sprite initGameOver(C2D_SpriteSheet spriteSheet);
 
-sprite* initCacti(C2D_SpriteSheet spriteSheet);
+sprite* initCacti(C2D_SpriteSheet spriteSheet, size_t* length);
 
 sprite initBird(C2D_SpriteSheet spriteSheet);
 

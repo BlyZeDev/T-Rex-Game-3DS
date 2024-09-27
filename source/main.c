@@ -16,12 +16,13 @@
 #define X_SPEED_MAX -10.0f
 #define PLAYER_X 15.0f
 #define MAX_CLOUDS 5
+#define CACTUS_MIN_SPACE TOP_SCREEN_WIDTH / 2.0f
+#define CACTUS_MAX_SPACE TOP_SCREEN_WIDTH * 2.0f
 
 static sound jumpSfx = { "romfs:/jump.bin", NULL, 0, SOUND_FORMAT_16BIT | SOUND_ONE_SHOT };
 static sound scoreSfx = { "romfs:/score.bin", NULL, 0, SOUND_FORMAT_16BIT | SOUND_ONE_SHOT };
 
-static float rGroundLvl = 0.0f;
-static float dGroundLvl = 0.0f;
+static float groundLvl = 0.0f;
 static float xSpeed = 0.0f;
 static float minCloudLvl = 0.0f;
 static float maxCloudLvl = 0.0f;
@@ -76,11 +77,6 @@ void updateGround(sprite* groundPtr, sprite* groundExtPtr)
     moveSprite(groundExtPtr, xSpeed, 0);
 }
 
-void setCloudPos(sprite* cloudPtr)
-{
-    setSpritePos(cloudPtr, TOP_SCREEN_WIDTH + getRandom(1, TOP_SCREEN_WIDTH * 3), getRandom(minCloudLvl, maxCloudLvl));
-}
-
 void updateClouds(sprite* clouds)
 {
     sprite* curCloudPtr;
@@ -90,16 +86,21 @@ void updateClouds(sprite* clouds)
 
         if (curCloudPtr->frames[curCloudPtr->curIndex].params.pos.x < -TOP_SCREEN_WIDTH)
         {
-            setCloudPos(curCloudPtr);
+            setSpritePos(curCloudPtr, TOP_SCREEN_WIDTH + getRandom(TOP_SCREEN_WIDTH / 2, TOP_SCREEN_WIDTH * 3), getRandom(minCloudLvl, maxCloudLvl));
         }
 
-        moveSprite(curCloudPtr, xSpeed / 1.2f, 0);
+        moveSprite(curCloudPtr, xSpeed / 1.35f, 0);
     }
+}
+
+void updateCacti(sprite* cacti, size_t length)
+{
+    //Update cacti
 }
 
 void playerRun(player* playerPtr)
 {
-    setPlayerPos(playerPtr, PLAYER_X, rGroundLvl);
+    setPlayerPos(playerPtr, PLAYER_X, groundLvl);
     playerPtr->state = STATE_RUNNING;
     playerPtr->jumpVelocity = 0.0f;
 }
@@ -119,7 +120,7 @@ void updatePlayer(player* playerPtr)
             if ((kDown | kHeld) & KEY_B)
             {
                 playerPtr->state = STATE_DUCKING;
-                setPlayerPos(playerPtr, PLAYER_X, dGroundLvl);
+                setPlayerPos(playerPtr, PLAYER_X, groundLvl);
             }
             else if ((kDown | kHeld) & KEY_A) playerJump(playerPtr);
             break;
@@ -134,7 +135,7 @@ void updatePlayer(player* playerPtr)
             }
 
             sprite curSprite = playerPtr->sprites[playerPtr->state];
-            if (curSprite.frames[curSprite.curIndex].params.pos.y >= rGroundLvl) playerRun(playerPtr);
+            if (curSprite.frames[curSprite.curIndex].params.pos.y >= groundLvl) playerRun(playerPtr);
             break;
 
         case STATE_DUCKING:
@@ -150,53 +151,54 @@ void updatePlayer(player* playerPtr)
 
 int main(int argc, char **argv)
 {
+    osSetSpeedupEnable(false);
     init();
 
     C3D_RenderTarget* topPtr = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
-
+    
     C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
     if (!spriteSheet) svcBreak(USERBREAK_PANIC);
 
     sprite ground = initGround(spriteSheet);
     sprite groundExt = initGround(spriteSheet);
-    setSpritePos(&ground, 0, SCREEN_HEIGHT - ground.hitbox.height);
-    setSpritePos(&groundExt, ground.hitbox.width, SCREEN_HEIGHT - groundExt.hitbox.height);
-
+    setSpritePos(&ground, 0, SCREEN_HEIGHT - ground.hitbox.height * 0.5f);
+    setSpritePos(&groundExt, ground.hitbox.width, SCREEN_HEIGHT - groundExt.hitbox.height * 0.5f);
+    
     xSpeed = -5;
 
-    sprite sun = initSun(spriteSheet);
-    setSpritePos(&sun, TOP_SCREEN_WIDTH - sun.hitbox.width * 2, sun.hitbox.height / 2);
-
-    sprite clouds[MAX_CLOUDS] = {};
+    sprite* clouds = (sprite*)malloc(MAX_CLOUDS * sizeof(sprite));
 
     clouds[0] = initCloud(spriteSheet);
 
     minCloudLvl = clouds[0].hitbox.height;
-    maxCloudLvl = SCREEN_HEIGHT / 3;
+    maxCloudLvl = SCREEN_HEIGHT / 2.5f;
 
-    setCloudPos(&clouds[0]);
+    setSpritePos(&clouds[0], getRandom(-TOP_SCREEN_WIDTH * 3, TOP_SCREEN_WIDTH * 3), getRandom(minCloudLvl, maxCloudLvl));
 
     for (size_t i = 1; i < MAX_CLOUDS; i++)
     {
         clouds[i] = initCloud(spriteSheet);
-        setCloudPos(&clouds[i]);
+        setSpritePos(&clouds[i], getRandom(-TOP_SCREEN_WIDTH * 3, TOP_SCREEN_WIDTH * 3), getRandom(minCloudLvl, maxCloudLvl));
     }
 
     //sprite gameOver = initGameOver(spriteSheet);
 
     player player = initPlayer(spriteSheet);
 
-    rGroundLvl = SCREEN_HEIGHT - player.sprites[STATE_RUNNING].hitbox.height - ground.hitbox.height / 2;
-    dGroundLvl = SCREEN_HEIGHT - player.sprites[STATE_DUCKING].hitbox.height - ground.hitbox.height / 2;
+    groundLvl = SCREEN_HEIGHT - ground.hitbox.height * 0.65f;
 
-    setPlayerPos(&player, PLAYER_X, rGroundLvl);
+    setPlayerPos(&player, PLAYER_X, groundLvl);
 
-    //sprite* cacti = initCacti(spriteSheet);
+    size_t amountCacti = 0;
+    sprite* cacti = initCacti(spriteSheet, &amountCacti);
+
+    //Set cacti positions
+
     //sprite bird = initBird(spriteSheet);
 
-    u32 frames = 0;
-
+    u32 frames;
     sprite* curCloudPtr;
+    sprite* curCactusPtr;
 	while (aptMainLoop())
 	{
         hidScanInput();
@@ -209,25 +211,25 @@ int main(int argc, char **argv)
 
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         
-        frames++;
+        frames = C3D_FrameCounter(0);
 
         if (frames % 600 == 0)
         {
             if (xSpeed > X_SPEED_MAX)
             {
                 xSpeed -= 0.5f;
+                audioStop(&jumpSfx);
                 audioPlay(&scoreSfx);
             }
         }
 
         updateGround(&ground, &groundExt);
         updateClouds(clouds);
+        updateCacti(cacti, amountCacti);
         updatePlayer(&player);
 
         C2D_TargetClear(topPtr, C2D_Color32(0, 0, 0, 255));
-		C2D_SceneBegin(topPtr);
-
-        renderSprite(&sun, frames);
+        C2D_SceneBegin(topPtr);
 
         renderSprite(&ground, frames);
         renderSprite(&groundExt, frames);
@@ -243,8 +245,19 @@ int main(int argc, char **argv)
             }
         }
 
-        renderSprite(&player.sprites[player.state], frames);
+        for (size_t i = 0; i < amountCacti; i++)
+        {
+            curCactusPtr = &cacti[i];
+
+            if (curCactusPtr->frames[curCactusPtr->curIndex].params.pos.x >= -curCactusPtr->hitbox.width
+                && curCactusPtr->frames[curCactusPtr->curIndex].params.pos.x <= TOP_SCREEN_WIDTH)
+            {
+                renderSprite(curCactusPtr, frames);
+            }
+        }
         
+        renderSprite(&player.sprites[player.state], frames);
+
         C3D_FrameEnd(0);
 	}
 

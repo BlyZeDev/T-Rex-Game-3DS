@@ -1,6 +1,5 @@
 --atlas -f rgba8888 -z none --border transparent
 ground.png
-sun.png
 cloud.png
 game_over.png
 trex_running_1.png
