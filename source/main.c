@@ -19,8 +19,8 @@
 #define PLAYER_X_POS 15.0f
 #define MAX_CLOUDS 5
 #define CACTUS_MIN_SPACE TOP_SCREEN_WIDTH * 0.4f
-#define CACTUS_MAX_SPACE TOP_SCREEN_WIDTH * 1.0f
-#define BIRD_SPACE (CACTUS_MIN_SPACE + CACTUS_MAX_SPACE) / 2.0f
+#define CACTUS_MAX_SPACE TOP_SCREEN_WIDTH * 1.2f
+#define BIRD_SPACE (CACTUS_MIN_SPACE + CACTUS_MAX_SPACE) * 0.4f
 
 static float groundLvl = 0.0f;
 static float xSpeed = 0.0f;
@@ -113,15 +113,16 @@ void updateCacti(sprite* cacti, const size_t length)
 
 void updateBird(sprite* birdPtr, sprite* cacti, const size_t length)
 {
-    size_t secondLastCactusIndex = lastCactusIndex - 1;
-    if (secondLastCactusIndex < 0) secondLastCactusIndex = length - 1;
+    size_t secondLastCactusIndex = lastCactusIndex;
+    if (secondLastCactusIndex == 0) secondLastCactusIndex = length - 1;
 
-    if (getPosX(*birdPtr) < -TOP_SCREEN_WIDTH)
+    if (getPosX(*birdPtr) < -getWidth(*birdPtr))
     {
-        if (getDiff(getPosX(cacti[lastCactusIndex]), getPosX(cacti[secondLastCactusIndex])) > BIRD_SPACE)
+        if (getDiff(getPosX(cacti[lastCactusIndex]),
+            getPosX(cacti[secondLastCactusIndex]) + getWidth(cacti[secondLastCactusIndex])) > BIRD_SPACE)
         {
             setSpritePos(birdPtr,
-                getMid(getPosX(cacti[lastCactusIndex]), getPosX(cacti[secondLastCactusIndex])) - getWidth(*birdPtr) / 2,
+                getMid(getPosX(cacti[lastCactusIndex]), getPosX(cacti[secondLastCactusIndex])) + getWidth(cacti[lastCactusIndex]),
                 getRandom(0, 1) == 0 ? lowBirdPos : highBirdPos);
         }
     }
@@ -145,14 +146,14 @@ void playerJump(player* playerPtr)
 
 void playerCheckCollision(player* playerPtr, sprite* cacti, const size_t length, const sprite bird)
 {
-    sprite sprite = playerPtr->sprites[playerPtr->state];
+    sprite player = playerPtr->sprites[playerPtr->state];
 
-    //player.pos.x += 2.5f;
-    //player.pos.y -= 5.0f;
-    //player.hitbox.width -= 11.0f;
-    //player.hitbox.height -= 5.0f;
+    float posX = getPosX(player) + 2.5f;
+    float posY = getPosY(player) - 5.0f;
+    float width = getWidth(player) - 11.0f;
+    float height = getHeight(player) - 5.0f;
     
-    if (isColliding(sprite, bird))
+    if (isInBounds(bird, posX, posY, width, height))
     {
         playerPtr->state = STATE_DEAD;
         return;
@@ -160,7 +161,7 @@ void playerCheckCollision(player* playerPtr, sprite* cacti, const size_t length,
 
     for (size_t i = 0; i < length; i++)
     {
-        if (isColliding(sprite, cacti[i]))
+        if (isInBounds(cacti[i], posX, posY, width, height))
         {
             playerPtr->state = STATE_DEAD;
             return;
@@ -244,7 +245,7 @@ int main(int argc, char** argv)
 
     sprite bird = initBird(spriteSheet);
 
-    highBirdPos = groundLvl - getMid(getHeight(player.sprites[STATE_RUNNING]), getHeight(player.sprites[STATE_DUCKING]));
+    highBirdPos = groundLvl - getHeight(player.sprites[STATE_DUCKING]) * 1.35f;
     lowBirdPos = groundLvl;
 
     bool requestQuit = false;
@@ -252,8 +253,6 @@ int main(int argc, char** argv)
     sprite* curSpritePtr;
 	while (aptMainLoop())
 	{
-        srand(osGetTime());
-
         frames = 0;
 
         setSpritePos(&ground, 0, SCREEN_HEIGHT - getHeight(ground) * 0.5f);

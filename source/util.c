@@ -43,15 +43,13 @@ bool isInRange(const float pos, const float start, const float end)
     return pos >= start && pos <= end;
 }
 
-bool isColliding(const sprite spr1, const sprite spr2)
+bool isInBounds(const sprite spr, const float x, const float y, const float width, const float height)
 {
-    return !(getPosX(spr1) + getWidth(spr1) <= getPosX(spr2)
-        || getPosX(spr2) + getWidth(spr2) <= getPosX(spr1)
-        || getPosY(spr1) + getHeight(spr1) <= getPosY(spr2)
-        || getPosY(spr2) + getHeight(spr2) <= getPosY(spr1));
+    return !(x + width <= getPosX(spr) || getPosX(spr) + getWidth(spr) <= x
+        || y + height <= getPosY(spr) || getPosY(spr) + getHeight(spr) <= y);
 }
 
 int getRandom(const int min, const int max)
 {
-    return rand() % (max - min + 1) + min;
+    return min + (arc4random_uniform((max - min) + 1));
 }

@@ -15,7 +15,7 @@ float getDiff(const float num1, const float num2);
 
 bool isInRange(const float pos, const float start, const float end);
 
-bool isColliding(const sprite spr1, const sprite spr2);
+bool isInBounds(const sprite spr, const float x, const float y, const float width, const float height);
 
 int getRandom(const int min, const int max);
 
