@@ -9,6 +9,9 @@ typedef struct
     u32 flags;
 } sound;
 
+extern sound jumpSfx;
+extern sound scoreSfx;
+
 void audioPlay(sound* sound);
 
 void audioStop(sound* sound);

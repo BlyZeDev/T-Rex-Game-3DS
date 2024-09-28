@@ -14,6 +14,9 @@ typedef struct
     u32 flags;
 } sound;
 
+sound jumpSfx = { "romfs:/jump.bin", NULL, 0, SOUND_FORMAT_16BIT | SOUND_ONE_SHOT };
+sound scoreSfx = { "romfs:/score.bin", NULL, 0, SOUND_FORMAT_16BIT | SOUND_ONE_SHOT };
+
 void audioPlay(sound* sound)
 {
 	FILE* file = fopen(sound->file, "rb");

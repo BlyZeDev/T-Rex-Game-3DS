@@ -8,18 +8,10 @@
 
 typedef struct
 {
-    u16 width;
-    u16 height;
-} hitbox;
-
-typedef struct
-{
     C2D_Sprite* frames;
     size_t numFrames;
     size_t curIndex;
     u8 fps;
-
-    hitbox hitbox;
 } sprite;
 
 typedef enum
@@ -39,7 +31,7 @@ typedef struct
     float jumpVelocity;
 } player;
 
-void updateFrames(sprite* spritePtr, u32 frames)
+void updateFrames(sprite* spritePtr, const u32 frames)
 {
     if (spritePtr->fps > 0)
     {
@@ -47,37 +39,31 @@ void updateFrames(sprite* spritePtr, u32 frames)
         {
             spritePtr->curIndex++;
 
-            if (spritePtr->curIndex > spritePtr->numFrames - 1) spritePtr->curIndex = 0;
+            if (spritePtr->curIndex >= spritePtr->numFrames) spritePtr->curIndex = 0;
         }
     }
 }
 
-sprite initSprite(C2D_Sprite* sprites, size_t numFrames, u8 fps)
+sprite initSprite(C2D_Sprite* sprites, const size_t numFrames, const u8 fps)
 {
-    sprite anim;
+    sprite sprite;
     
-    anim.curIndex = 0;
-    anim.fps = fps;
-    anim.numFrames = numFrames;
-    anim.frames = (C2D_Sprite*)malloc(numFrames * sizeof(C2D_Sprite));
+    sprite.curIndex = 0;
+    sprite.fps = fps;
+    sprite.numFrames = numFrames;
+    sprite.frames = (C2D_Sprite*)malloc(numFrames * sizeof(C2D_Sprite));
 
-    hitbox hb = { 0, 0 };
     for (size_t i = 0; i < numFrames; i++)
     {
-        anim.frames[i] = sprites[i];
+        sprite.frames[i] = sprites[i];
 
-        C2D_SpriteSetCenter(&anim.frames[i], 0.0f, 1.0f);
-
-        if (anim.frames[i].image.subtex->width > hb.width) hb.width = anim.frames[i].image.subtex->width;
-        if (anim.frames[i].image.subtex->height > hb.height) hb.height = anim.frames[i].image.subtex->height;
+        C2D_SpriteSetCenter(&sprite.frames[i], 0.0f, 1.0f);
     }
 
-    anim.hitbox = hb;
-
-    return anim;
+    return sprite;
 }
 
-player initPlayer(C2D_SpriteSheet spriteSheet)
+player initPlayer(const C2D_SpriteSheet spriteSheet)
 {
     const size_t spriteCount = 4;
 
@@ -117,7 +103,7 @@ player initPlayer(C2D_SpriteSheet spriteSheet)
     return player;
 }
 
-sprite initGround(C2D_SpriteSheet spriteSheet)
+sprite initGround(const C2D_SpriteSheet spriteSheet)
 {
     C2D_Sprite curSprite;
 
@@ -125,7 +111,7 @@ sprite initGround(C2D_SpriteSheet spriteSheet)
     return initSprite(&curSprite, 1, 0);
 }
 
-sprite initCloud(C2D_SpriteSheet spriteSheet)
+sprite initCloud(const C2D_SpriteSheet spriteSheet)
 {
     C2D_Sprite curSprite;
 
@@ -133,7 +119,7 @@ sprite initCloud(C2D_SpriteSheet spriteSheet)
     return initSprite(&curSprite, 1, 0);
 }
 
-sprite initGameOver(C2D_SpriteSheet spriteSheet)
+sprite initGameOver(const C2D_SpriteSheet spriteSheet)
 {
     C2D_Sprite curSprite;
 
@@ -141,7 +127,7 @@ sprite initGameOver(C2D_SpriteSheet spriteSheet)
     return initSprite(&curSprite, 1, 0);
 }
 
-sprite* initCacti(C2D_SpriteSheet spriteSheet, size_t* length)
+sprite* initCacti(const C2D_SpriteSheet spriteSheet, size_t* length)
 {
     C2D_Sprite curSprite;
     *length = 8;
@@ -174,7 +160,7 @@ sprite* initCacti(C2D_SpriteSheet spriteSheet, size_t* length)
     return sprites;
 }
 
-sprite initBird(C2D_SpriteSheet spriteSheet)
+sprite initBird(const C2D_SpriteSheet spriteSheet)
 {
     C2D_Sprite* curSprite = (C2D_Sprite*)malloc(2 * sizeof(C2D_Sprite));
 
@@ -190,7 +176,7 @@ sprite initBird(C2D_SpriteSheet spriteSheet)
     return bird;
 }
 
-void setSpritePos(sprite* spritePtr, float x, float y)
+void setSpritePos(sprite* spritePtr, const float x, const float y)
 {
     for (size_t i = 0; i < spritePtr->numFrames; i++)
     {
@@ -198,7 +184,7 @@ void setSpritePos(sprite* spritePtr, float x, float y)
     }
 }
 
-void moveSprite(sprite* spritePtr, float moveX, float moveY)
+void moveSprite(sprite* spritePtr, const float moveX, const float moveY)
 {
     for (size_t i = 0; i < spritePtr->numFrames; i++)
     {
@@ -206,7 +192,7 @@ void moveSprite(sprite* spritePtr, float moveX, float moveY)
     }
 }
 
-void setPlayerPos(player* playerPtr, float x, float y)
+void setPlayerPos(player* playerPtr, const float x, const float y)
 {
     for (size_t i = 0; i < playerPtr->spriteCount; i++)
     {
@@ -214,7 +200,7 @@ void setPlayerPos(player* playerPtr, float x, float y)
     }
 }
 
-void movePlayer(player* playerPtr, float moveX, float moveY)
+void movePlayer(player* playerPtr, const float moveX, const float moveY)
 {
     for (size_t i = 0; i < playerPtr->spriteCount; i++)
     {
@@ -222,7 +208,7 @@ void movePlayer(player* playerPtr, float moveX, float moveY)
     }
 }
 
-void renderSprite(sprite* spritePtr, u32 frames)
+void renderSprite(sprite* spritePtr, const u32 frames)
 {
     updateFrames(spritePtr, frames);
 
