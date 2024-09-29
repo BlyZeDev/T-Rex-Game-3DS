@@ -51,5 +51,23 @@ bool isInBounds(const sprite spr, const float x, const float y, const float widt
 
 int getRandom(const int min, const int max)
 {
-    return min + (arc4random_uniform((max - min) + 1));
+    return min + rand() / (RAND_MAX / (max - min + 1) + 1);
+}
+
+void swap(size_t* ptr1, size_t* ptr2)
+{
+    size_t temp = *ptr1;
+    *ptr1 = *ptr2;
+    *ptr2 = temp;
+}
+
+void shuffleArray(size_t* arr, size_t length)
+{
+    size_t temp;
+    for (size_t i = length - 1; i > 0; i--)
+    {
+        temp = getRandom(0, length - 1);
+ 
+        swap(&arr[i], &arr[temp]);
+    }
 }

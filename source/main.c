@@ -18,8 +18,8 @@
 #define X_SPEED_MAX -10.0f
 #define PLAYER_X_POS 15.0f
 #define MAX_CLOUDS 5
-#define CACTUS_MIN_SPACE TOP_SCREEN_WIDTH * 0.4f
-#define CACTUS_MAX_SPACE TOP_SCREEN_WIDTH * 1.2f
+#define CACTUS_MIN_SPACE TOP_SCREEN_WIDTH * 0.3f
+#define CACTUS_MAX_SPACE TOP_SCREEN_WIDTH * 1.5f
 #define BIRD_SPACE (CACTUS_MIN_SPACE + CACTUS_MAX_SPACE) * 0.4f
 
 static float groundLvl = 0.0f;
@@ -100,7 +100,7 @@ void updateCacti(sprite* cacti, const size_t length)
         if (getPosX(*curCactusPtr) < -getWidth(*curCactusPtr))
         {
             setSpritePos(curCactusPtr,
-                getPosX(cacti[lastCactusIndex]) + getWidth(*curCactusPtr) + getRandom(CACTUS_MIN_SPACE, CACTUS_MAX_SPACE),
+                getPosX(cacti[lastCactusIndex]) + getWidth(cacti[lastCactusIndex]) + getRandom(CACTUS_MIN_SPACE, CACTUS_MAX_SPACE),
                 groundLvl);
 
             lastCactusIndex++;
@@ -253,6 +253,8 @@ int main(int argc, char** argv)
     sprite* curSpritePtr;
 	while (aptMainLoop())
 	{
+        srand(osGetTime());
+
         frames = 0;
 
         setSpritePos(&ground, 0, SCREEN_HEIGHT - getHeight(ground) * 0.5f);
@@ -342,7 +344,7 @@ int main(int argc, char** argv)
                 }
             }
 
-            renderSprite(&bird, frames);
+            if (isInRange(getPosX(bird), -getWidth(bird), TOP_SCREEN_WIDTH)) renderSprite(&bird, frames);
             
             renderSprite(&player.sprites[player.state], frames);
 

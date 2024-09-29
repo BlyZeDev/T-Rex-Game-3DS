@@ -19,4 +19,6 @@ bool isInBounds(const sprite spr, const float x, const float y, const float widt
 
 int getRandom(const int min, const int max);
 
+void shuffleArray(size_t* arr, size_t length);
+
 #endif
