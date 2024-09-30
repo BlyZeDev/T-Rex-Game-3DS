@@ -1,10 +1,6 @@
 #ifndef SPRITES_H
 #define SPRITES_H
 
-#define JUMP_FORCE -9.5f
-#define GRAVITY 0.5f
-#define GRAVITY_MULT 3.5f
-
 typedef struct
 {
     C2D_Sprite* frames;

@@ -78,7 +78,7 @@ player initPlayer(const C2D_SpriteSheet spriteSheet)
     {
         C2D_SpriteFromSheet(&curSprite[i], spriteSheet, i + 3); //T-Rex Running
     }
-    player.sprites[0] = initSprite(curSprite, 2, 20);
+    player.sprites[0] = initSprite(curSprite, 2, 15);
 
     C2D_SpriteFromSheet(&curSprite[0], spriteSheet, 5);
     player.sprites[1] = initSprite(&curSprite[0], 1, 0);

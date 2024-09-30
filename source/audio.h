@@ -3,17 +3,19 @@
 
 typedef struct
 {
-    char* file;
     u8* buffer;
     u32 size;
+
     u32 flags;
+	u32 channel;
 } sound;
 
-extern sound jumpSfx;
-extern sound scoreSfx;
+void loadSound(char* path, sound* soundPtr);
 
-void audioPlay(sound* sound);
+void stopSound(sound* soundPtr);
 
-void audioStop(sound* sound);
+void playSound(sound* soundPtr);
+
+void freeSound(sound* soundPtr);
 
 #endif

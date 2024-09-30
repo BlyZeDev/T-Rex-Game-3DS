@@ -54,14 +54,14 @@ int getRandom(const int min, const int max)
     return min + rand() / (RAND_MAX / (max - min + 1) + 1);
 }
 
-void swap(size_t* ptr1, size_t* ptr2)
+void swap(sprite* sprPtr1, sprite* sprPtr2)
 {
-    size_t temp = *ptr1;
-    *ptr1 = *ptr2;
-    *ptr2 = temp;
+    sprite temp = *sprPtr1;
+    *sprPtr1 = *sprPtr2;
+    *sprPtr2 = temp;
 }
 
-void shuffleArray(size_t* arr, size_t length)
+void shuffleSprites(sprite* arr, size_t length)
 {
     size_t temp;
     for (size_t i = length - 1; i > 0; i--)
