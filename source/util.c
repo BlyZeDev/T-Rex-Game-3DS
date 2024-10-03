@@ -45,8 +45,13 @@ bool isInRange(const float pos, const float start, const float end)
 
 bool isInBounds(const sprite spr, const float x, const float y, const float width, const float height)
 {
-    return !(x + width <= getPosX(spr) || getPosX(spr) + getWidth(spr) <= x
-        || y + height <= getPosY(spr) || getPosY(spr) + getHeight(spr) <= y);
+    return getPosX(spr) + getWidth(spr) >= x && getPosX(spr) <= x + width
+        && getPosY(spr) >= y - height && getPosY(spr) - getHeight(spr) <= y;
+}
+
+bool isTouched(const sprite spr, const touchPosition touchPos)
+{
+    return isInBounds(spr, touchPos.px, touchPos.py, 0, 0);
 }
 
 int getRandom(const int min, const int max)

@@ -24,6 +24,21 @@
 #define CACTUS_MIN_SPACE TOP_SCREEN_WIDTH * 0.4f
 #define CACTUS_MAX_SPACE TOP_SCREEN_WIDTH * 1.5f
 #define BIRD_SPACE (CACTUS_MIN_SPACE + CACTUS_MAX_SPACE) * 0.35f
+#define SCORE_TXT_BUFFER 11
+
+typedef enum
+{
+    GSTATE_STOP,
+    GSTATE_RUNNING,
+    GSTATE_GAME_OVER
+} gameState;
+
+typedef struct
+{
+    u16 username[10];
+    u32 zero;
+    u32 ngWord;
+} username;
 
 static sound jumpSfx = { NULL, 0, SOUND_FORMAT_16BIT | SOUND_ONE_SHOT, 8 };
 static sound scoreSfx = { NULL, 0, SOUND_FORMAT_16BIT | SOUND_ONE_SHOT, 9 };
@@ -37,14 +52,17 @@ static float highBirdPos = 0.0f;
 static float lowBirdPos = 0.0f;
 static size_t lastCactusIndex = 0;
 
+static gameState gState = GSTATE_RUNNING;
+
 void init()
 {
-    osSetSpeedupEnable(false); //Set true when done
+    osSetSpeedupEnable(true);
     romfsInit();
 	gfxInitDefault();
     hidInit();
 	mcuHwcInit();
     csndInit();
+    cfguInit();
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
@@ -61,11 +79,22 @@ void close()
 {
     C2D_Fini();
     C3D_Fini();
+    cfguExit();
     csndExit();
 	mcuHwcExit();
 	hidExit();
 	gfxExit();
     romfsExit();
+}
+
+void getUsername(char* name, const size_t length)
+{
+    username nickname;
+
+    CFGU_GetConfigInfoBlk2(sizeof(nickname), 0x000A0000, &nickname);
+
+    ssize_t output = utf16_to_utf8((u8*)name, nickname.username, length - 1);
+    name[output] = '\0';
 }
 
 void updateGround(sprite* groundPtr, sprite* groundExtPtr)
@@ -165,6 +194,7 @@ void playerJump(player* playerPtr)
 void playerDead(player* playerPtr)
 {
     playerPtr->state = STATE_DEAD;
+    gState = GSTATE_GAME_OVER;
     playSound(&deathSfx);
 }
 
@@ -172,7 +202,7 @@ void playerCheckCollision(player* playerPtr, sprite* cacti, const size_t length,
 {
     sprite player = playerPtr->sprites[playerPtr->state];
 
-    float posX = getPosX(player) + 2.5f;
+    float posX = getPosX(player) + 2.75f;
     float posY = getPosY(player) - 5.0f;
     float width = getWidth(player) - 11.0f;
     float height = getHeight(player) - 5.0f;
@@ -238,9 +268,11 @@ int main(int argc, char** argv)
     init();
     initSound();
 
-    const u32 SCORE_COLOR = C2D_Color32(255, 255, 255, 255);
+    const u32 TEXT_COLOR = C2D_Color32(255, 255, 255, 255);
+    const u32 CLEAR_COLOR = C2D_Color32(0, 0, 0, 255);
 
     C3D_RenderTarget* topPtr = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+    C3D_RenderTarget* bottomPtr = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     
     C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
     if (!spriteSheet) svcBreak(USERBREAK_PANIC);
@@ -250,17 +282,16 @@ int main(int argc, char** argv)
     
     sprite* clouds = (sprite*)malloc(MAX_CLOUDS * sizeof(sprite));
 
-    clouds[0] = initCloud(spriteSheet);
-
-    minCloudLvl = getHeight(clouds[0]);
-    maxCloudLvl = SCREEN_HEIGHT / 3.0f;
-
-    for (size_t i = 1; i < MAX_CLOUDS; i++)
+    for (size_t i = 0; i < MAX_CLOUDS; i++)
     {
         clouds[i] = initCloud(spriteSheet);
     }
 
-    //sprite gameOver = initGameOver(spriteSheet);
+    minCloudLvl = getHeight(clouds[0]);
+    maxCloudLvl = SCREEN_HEIGHT / 3.0f;
+
+    sprite gameOver = initGameOver(spriteSheet);
+    setSpritePos(&gameOver, roundf(BOTTOM_SCREEN_WIDTH / 2 - getWidth(gameOver) / 2), roundf(SCREEN_HEIGHT / 2 + getHeight(gameOver) / 2));
 
     player player = initPlayer(spriteSheet);
 
@@ -274,24 +305,33 @@ int main(int argc, char** argv)
     highBirdPos = groundLvl - getHeight(player.sprites[STATE_DUCKING]) * 1.35f;
     lowBirdPos = groundLvl;
 
-    C2D_Font font = C2D_FontLoad("romfs:/font.bcfnt");
-    C2D_TextBuf textBuf = C2D_TextBufNew(11);
+    char* usernameBuf = (char*)malloc(41 * sizeof(char));
+    getUsername(usernameBuf, 41);
 
-    bool requestQuit = false;
+    C2D_Font font = C2D_FontLoad("romfs:/font.bcfnt");
+    C2D_TextBuf textBuf = C2D_TextBufNew(100);
+
     u32 frames;
     u32 score;
-    char* scoreTxtBuf = (char*)malloc(11 * sizeof(char));
+    char* scoreTxtBuf = (char*)malloc(SCORE_TXT_BUFFER * sizeof(char));
+    C2D_Text nicknameTxt;
     C2D_Text scoreTxt;
     sprite* curSpritePtr;
 	while (aptMainLoop())
 	{
         srand(osGetTime());
 
+        gState = GSTATE_RUNNING;
+
         frames = 0;
         score = 0;
 
         C2D_TextBufClear(textBuf);
-        snprintf(scoreTxtBuf, 11, "%05lu", score);
+
+        C2D_TextFontParse(&nicknameTxt, font, textBuf, usernameBuf);
+        C2D_TextOptimize(&nicknameTxt);
+
+        snprintf(scoreTxtBuf, SCORE_TXT_BUFFER, "%05lu", score);
         C2D_TextFontParse(&scoreTxt, font, textBuf, scoreTxtBuf);
         C2D_TextOptimize(&scoreTxt);
 
@@ -328,22 +368,30 @@ int main(int argc, char** argv)
 
             if (kDown & KEY_START)
             {
-                requestQuit = true;
+                gState = GSTATE_STOP;
                 break;
             }
-            if (kDown & KEY_SELECT) break;
+
+            if (gState == GSTATE_GAME_OVER)
+            {
+                if (isTouched(gameOver, touchPos)) break;
+            }
 
             C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
             frames++;
 
-            if (player.state != STATE_DEAD)
+            if (gState == GSTATE_RUNNING)
             {
                 if (frames % 6 == 0)
                 {
                     score++;
                     C2D_TextBufClear(textBuf);
-                    snprintf(scoreTxtBuf, sizeof(scoreTxt), "%05lu", score);
+                    
+                    C2D_TextFontParse(&nicknameTxt, font, textBuf, usernameBuf);
+                    C2D_TextOptimize(&nicknameTxt);
+
+                    snprintf(scoreTxtBuf, SCORE_TXT_BUFFER, "%05lu", score);
                     C2D_TextFontParse(&scoreTxt, font, textBuf, scoreTxtBuf);
                     C2D_TextOptimize(&scoreTxt);
                 }
@@ -366,7 +414,15 @@ int main(int argc, char** argv)
                 updateBird(&bird, cacti, amountCacti);
             }
 
-            C2D_TargetClear(topPtr, C2D_Color32(0, 0, 0, 255));
+            C2D_TargetClear(bottomPtr, CLEAR_COLOR);
+            C2D_SceneBegin(bottomPtr);
+
+            if (gState == GSTATE_GAME_OVER)
+            {
+                renderSprite(&gameOver, frames);
+            }
+
+            C2D_TargetClear(topPtr, CLEAR_COLOR);
             C2D_SceneBegin(topPtr);
 
             renderSprite(&ground, frames);
@@ -382,7 +438,8 @@ int main(int argc, char** argv)
                 }
             }
 
-            C2D_DrawText(&scoreTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH, 0, 0.0f, 0.75f, 0.75f, SCORE_COLOR);
+            C2D_DrawText(&nicknameTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH * 0.75f, 0.0f, 0.0f, 0.75f, 0.75f, TEXT_COLOR);
+            C2D_DrawText(&scoreTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH, 0.0f, 0.0f, 0.75f, 0.75f, TEXT_COLOR);
 
             for (size_t i = 0; i < amountCacti; i++)
             {
@@ -401,13 +458,16 @@ int main(int argc, char** argv)
             C3D_FrameEnd(0);
         }
 
-        if (requestQuit) break;
+        if (gState == GSTATE_STOP) break;
 	}
 
+    free(usernameBuf);
+    free(scoreTxtBuf);
     free(clouds);
     free(cacti);
     C2D_SpriteSheetFree(spriteSheet);
     C3D_RenderTargetDelete(topPtr);
+    C3D_RenderTargetDelete(bottomPtr);
 
     close();
 	return 0;

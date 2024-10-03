@@ -17,6 +17,8 @@ bool isInRange(const float pos, const float start, const float end);
 
 bool isInBounds(const sprite spr, const float x, const float y, const float width, const float height);
 
+bool isTouched(const sprite spr, const touchPosition touchPos);
+
 int getRandom(const int min, const int max);
 
 void shuffleSprites(sprite* arr, size_t length);
