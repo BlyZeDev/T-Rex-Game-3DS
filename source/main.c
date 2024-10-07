@@ -9,6 +9,7 @@
 #include "sprites.h"
 #include "audio.h"
 #include "input.h"
+#include "fs.h"
 #include "util.h"
 
 #define TOP_SCREEN_WIDTH  400
@@ -58,6 +59,7 @@ void init()
 {
     osSetSpeedupEnable(true);
     romfsInit();
+    initSd();
 	gfxInitDefault();
     hidInit();
 	mcuHwcInit();
@@ -84,6 +86,7 @@ void close()
 	mcuHwcExit();
 	hidExit();
 	gfxExit();
+    exitSd();
     romfsExit();
 }
 
@@ -308,13 +311,16 @@ int main(int argc, char** argv)
     char* usernameBuf = (char*)malloc(41 * sizeof(char));
     getUsername(usernameBuf, 41);
 
+    char* highscoreTxtBuf = (char*)malloc(SCORE_TXT_BUFFER * sizeof(char));
+    char* scoreTxtBuf = (char*)malloc(SCORE_TXT_BUFFER * sizeof(char));
+
     C2D_Font font = C2D_FontLoad("romfs:/font.bcfnt");
-    C2D_TextBuf textBuf = C2D_TextBufNew(100);
+    C2D_TextBuf textBuf = C2D_TextBufNew(150);
 
     u32 frames;
     u32 score;
-    char* scoreTxtBuf = (char*)malloc(SCORE_TXT_BUFFER * sizeof(char));
     C2D_Text nicknameTxt;
+    C2D_Text highscoreTxt;
     C2D_Text scoreTxt;
     sprite* curSpritePtr;
 	while (aptMainLoop())
@@ -330,6 +336,10 @@ int main(int argc, char** argv)
 
         C2D_TextFontParse(&nicknameTxt, font, textBuf, usernameBuf);
         C2D_TextOptimize(&nicknameTxt);
+
+        snprintf(highscoreTxtBuf, SCORE_TXT_BUFFER, "%05lu", readHighscore());
+        C2D_TextFontParse(&highscoreTxt, font, textBuf, highscoreTxtBuf);
+        C2D_TextOptimize(&highscoreTxt);
 
         snprintf(scoreTxtBuf, SCORE_TXT_BUFFER, "%05lu", score);
         C2D_TextFontParse(&scoreTxt, font, textBuf, scoreTxtBuf);
@@ -374,7 +384,7 @@ int main(int argc, char** argv)
 
             if (gState == GSTATE_GAME_OVER)
             {
-                if (isTouched(gameOver, touchPos)) break;
+                if (isTouched(gameOver, touchPos) || (kDown & KEY_A)) break;
             }
 
             C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
@@ -390,6 +400,9 @@ int main(int argc, char** argv)
                     
                     C2D_TextFontParse(&nicknameTxt, font, textBuf, usernameBuf);
                     C2D_TextOptimize(&nicknameTxt);
+
+                    C2D_TextFontParse(&highscoreTxt, font, textBuf, highscoreTxtBuf);
+                    C2D_TextOptimize(&highscoreTxt);
 
                     snprintf(scoreTxtBuf, SCORE_TXT_BUFFER, "%05lu", score);
                     C2D_TextFontParse(&scoreTxt, font, textBuf, scoreTxtBuf);
@@ -438,8 +451,9 @@ int main(int argc, char** argv)
                 }
             }
 
-            C2D_DrawText(&nicknameTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH * 0.75f, 0.0f, 0.0f, 0.75f, 0.75f, TEXT_COLOR);
-            C2D_DrawText(&scoreTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH, 0.0f, 0.0f, 0.75f, 0.75f, TEXT_COLOR);
+            C2D_DrawText(&nicknameTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH * 0.675f, 0.0f, 0.0f, 0.5f, 0.5f, TEXT_COLOR);
+            C2D_DrawText(&highscoreTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH * 0.85f, 0.0f, 0.0f, 0.5f, 0.5f, TEXT_COLOR);
+            C2D_DrawText(&scoreTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH, 0.0f, 0.0f, 0.5f, 0.5f, TEXT_COLOR);
 
             for (size_t i = 0; i < amountCacti; i++)
             {
@@ -458,10 +472,16 @@ int main(int argc, char** argv)
             C3D_FrameEnd(0);
         }
 
+        if (readHighscore() < score)
+        {
+            writeHighscore(score);
+        }
+
         if (gState == GSTATE_STOP) break;
 	}
 
     free(usernameBuf);
+    free(highscoreTxtBuf);
     free(scoreTxtBuf);
     free(clouds);
     free(cacti);
