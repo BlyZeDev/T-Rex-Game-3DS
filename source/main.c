@@ -271,6 +271,18 @@ int main(int argc, char** argv)
     init();
     initSound();
 
+    migrateHighscore();
+
+    {
+        u8 model;
+        CFGU_GetSystemModel(&model);
+
+        if (model != CFG_MODEL_2DS)
+        {
+            gfxSetWide(true);
+        }
+    }
+
     const u32 TEXT_COLOR = C2D_Color32(255, 255, 255, 255);
     const u32 CLEAR_COLOR = C2D_Color32(0, 0, 0, 255);
 
@@ -454,7 +466,7 @@ int main(int argc, char** argv)
             C2D_DrawText(&nicknameTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH * 0.675f, 0.0f, 0.0f, 0.5f, 0.5f, TEXT_COLOR);
             C2D_DrawText(&highscoreTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH * 0.85f, 0.0f, 0.0f, 0.5f, 0.5f, TEXT_COLOR);
             C2D_DrawText(&scoreTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH, 0.0f, 0.0f, 0.5f, 0.5f, TEXT_COLOR);
-
+            
             for (size_t i = 0; i < amountCacti; i++)
             {
                 curSpritePtr = &cacti[i];

@@ -7,6 +7,8 @@ u32 readHighscore();
 
 void writeHighscore(u32 value);
 
+void migrateHighscore();
+
 void exitSd();
 
 #endif
