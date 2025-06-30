@@ -1,2 +1,8 @@
-## Fork of T-Rex Game 3DS with Stereoscopic 3D support (in beta)
-Original - https://github.com/BlyZeDev/T-Rex-Game-3DS
+# T-Rex Game 3DS
+GBAtemp Thread: https://gbatemp.net/threads/release-chrome-t-rex-game-clone.661573
+
+### Controls:
+- A to jump
+- B to duck or fall faster when jumping
+
+### Have fun!
