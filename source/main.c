@@ -61,6 +61,7 @@ void init()
     romfsInit();
     initSd();
 	gfxInitDefault();
+    gfxSet3D(true);
     hidInit();
 	mcuHwcInit();
     csndInit();
@@ -273,20 +274,21 @@ int main(int argc, char** argv)
 
     migrateHighscore();
 
-    {
-        u8 model;
-        CFGU_GetSystemModel(&model);
+    // {
+    //     u8 model;
+    //     CFGU_GetSystemModel(&model);
 
-        if (model != CFG_MODEL_2DS)
-        {
-            gfxSetWide(true);
-        }
-    }
+    //     if (model != CFG_MODEL_2DS)
+    //     {
+    //         gfxSetWide(false);
+    //     }
+    // }
 
     const u32 TEXT_COLOR = C2D_Color32(255, 255, 255, 255);
     const u32 CLEAR_COLOR = C2D_Color32(0, 0, 0, 255);
 
     C3D_RenderTarget* topPtr = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+    C3D_RenderTarget* topPtr_right = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
     C3D_RenderTarget* bottomPtr = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     
     C2D_SpriteSheet spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
@@ -335,6 +337,35 @@ int main(int argc, char** argv)
     C2D_Text highscoreTxt;
     C2D_Text scoreTxt;
     sprite* curSpritePtr;
+
+    // Render Sprites for each eye
+    void renderGame(int screen) {
+        renderSprite(&ground, frames);
+        renderSprite(&groundExt, frames);
+
+        for (size_t i = 0; i < MAX_CLOUDS; i++)
+        {
+            curSpritePtr = &clouds[i];
+
+            // if (isInRange(getPosX(*curSpritePtr), -getWidth(*curSpritePtr), TOP_SCREEN_WIDTH))
+            // {
+            renderSprite3D(curSpritePtr, frames, screen);
+            // }
+        }
+
+        for (size_t i = 0; i < amountCacti; i++)
+        {
+            curSpritePtr = &cacti[i];
+
+            if (isInRange(getPosX(*curSpritePtr), -getWidth(*curSpritePtr), TOP_SCREEN_WIDTH))
+            {
+                renderSprite(curSpritePtr, frames);
+            }
+        }
+
+        if (isInRange(getPosX(bird), -getWidth(bird), TOP_SCREEN_WIDTH)) renderSprite(&bird, frames);
+    }
+
 	while (aptMainLoop())
 	{
         srand(osGetTime());
@@ -446,40 +477,21 @@ int main(int argc, char** argv)
             {
                 renderSprite(&gameOver, frames);
             }
-
+            
             C2D_TargetClear(topPtr, CLEAR_COLOR);
             C2D_SceneBegin(topPtr);
-
-            renderSprite(&ground, frames);
-            renderSprite(&groundExt, frames);
-
-            for (size_t i = 0; i < MAX_CLOUDS; i++)
-            {
-                curSpritePtr = &clouds[i];
-
-                if (isInRange(getPosX(*curSpritePtr), -getWidth(*curSpritePtr), TOP_SCREEN_WIDTH))
-                {
-                    renderSprite(curSpritePtr, frames);
-                }
-            }
+            
+            renderGame(1);
+            renderSprite(&player.sprites[player.state], frames);
 
             C2D_DrawText(&nicknameTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH * 0.675f, 0.0f, 0.0f, 0.5f, 0.5f, TEXT_COLOR);
             C2D_DrawText(&highscoreTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH * 0.85f, 0.0f, 0.0f, 0.5f, 0.5f, TEXT_COLOR);
             C2D_DrawText(&scoreTxt, C2D_AlignRight | C2D_WithColor, TOP_SCREEN_WIDTH, 0.0f, 0.0f, 0.5f, 0.5f, TEXT_COLOR);
-            
-            for (size_t i = 0; i < amountCacti; i++)
-            {
-                curSpritePtr = &cacti[i];
 
-                if (isInRange(getPosX(*curSpritePtr), -getWidth(*curSpritePtr), TOP_SCREEN_WIDTH))
-                {
-                    renderSprite(curSpritePtr, frames);
-                }
-            }
+            C2D_TargetClear(topPtr_right, CLEAR_COLOR);
+            C2D_SceneBegin(topPtr_right);
 
-            if (isInRange(getPosX(bird), -getWidth(bird), TOP_SCREEN_WIDTH)) renderSprite(&bird, frames);
-            
-            renderSprite(&player.sprites[player.state], frames);
+            renderGame(2);
 
             C3D_FrameEnd(0);
         }
@@ -499,6 +511,7 @@ int main(int argc, char** argv)
     free(cacti);
     C2D_SpriteSheetFree(spriteSheet);
     C3D_RenderTargetDelete(topPtr);
+    C3D_RenderTargetDelete(topPtr_right);
     C3D_RenderTargetDelete(bottomPtr);
 
     close();

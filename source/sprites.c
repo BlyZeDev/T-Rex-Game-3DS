@@ -6,6 +6,10 @@
 #include <citro2d.h>
 #include <citro3d.h>
 
+#include "input.h"
+
+int genericOffset = 50;
+
 typedef struct
 {
     C2D_Sprite* frames;
@@ -116,6 +120,7 @@ sprite initCloud(const C2D_SpriteSheet spriteSheet)
     C2D_Sprite curSprite;
 
     C2D_SpriteFromSheet(&curSprite, spriteSheet, 1);
+    C2D_SpriteSetScale(&curSprite, 1.5f, 1.5f);
     return initSprite(&curSprite, 1, 0);
 }
 
@@ -213,4 +218,18 @@ void renderSprite(sprite* spritePtr, const u32 frames)
     updateFrames(spritePtr, frames);
 
     C2D_DrawSprite(&spritePtr->frames[spritePtr->curIndex]);
+}
+
+// If int screen is 1 (left eye) - substract offset from sprite's X
+// If int screen is 2 (right eye) - add offset to sprite's X
+void renderSprite3D(sprite* spritePtr, const u32 frames, int screen)
+{
+    updateFrames(spritePtr, frames);
+
+    int standartX = spritePtr->frames->params.pos.x;
+    int standartY = spritePtr->frames->params.pos.y;
+    float offset = (screen == 1) ? -genericOffset * slider : genericOffset * slider;
+    C2D_SpriteSetPos(&spritePtr->frames[spritePtr->curIndex], standartX + offset, standartY);
+    C2D_DrawSprite(&spritePtr->frames[spritePtr->curIndex]);
+    C2D_SpriteSetPos(&spritePtr->frames[spritePtr->curIndex], standartX, standartY);
 }
