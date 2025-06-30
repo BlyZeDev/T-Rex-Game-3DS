@@ -1,6 +1,8 @@
 #ifndef SPRITES_H
 #define SPRITES_H
 
+extern int genericOffset;
+
 typedef struct
 {
     C2D_Sprite* frames;
@@ -47,5 +49,7 @@ void setPlayerPos(player* playerPtr, const float x, const float y);
 void movePlayer(player* playerPtr, const float moveX, const float moveY);
 
 void renderSprite(sprite* spritePtr, const u32 frames);
+
+void renderSprite3D(sprite* spritePtr, const u32 frames, int screen);
 
 #endif

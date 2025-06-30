@@ -9,6 +9,7 @@
 u32 kDown = 0;
 u32 kHeld = 0;
 u32 kUp = 0;
+float slider;
 
 touchPosition touchPos;
 
@@ -19,6 +20,8 @@ void updateInput()
     kDown = hidKeysDown() | hidKeysDownRepeat();
     kHeld = hidKeysHeld();
     kUp = hidKeysUp();
+
+    slider = osGet3DSliderState();
 
     hidTouchRead(&touchPos);
 }
